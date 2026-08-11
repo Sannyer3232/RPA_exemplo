@@ -31,3 +31,6 @@ temp/
 .coverage
 .pytest_cache/
 htmlcov/
+
+client_secrets.json
+mycreds.txt
