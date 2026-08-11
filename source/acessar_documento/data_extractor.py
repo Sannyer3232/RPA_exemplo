@@ -46,42 +46,54 @@ class DataExtractor:
 
     @classmethod
     def extract_name(cls, text: str) -> str:
-        """Extrai o Nome da pessoa do texto."""
+        """Extrai o Nome da pessoa do texto (suporta rótulo na mesma linha ou na linha seguinte)."""
         lines = [line.strip() for line in text.splitlines() if line.strip()]
 
-        for kw in cls.NAME_KEYWORDS:
-            for line in lines:
-                match = re.search(kw + r'\s*([A-Za-zÀ-ÖØ-öø-ÿ\s]{3,60})', line, re.IGNORECASE)
-                if match:
-                    name = match.group(1).strip()
-                    # Garante que não capturou linhas completas de rótulos
-                    if len(name.split()) >= 1 and not any(k in name.lower() for k in ['cpf', 'data', 'endereço', 'rua']):
-                        return name.title()
+        for i, line in enumerate(lines):
+            for kw in cls.NAME_KEYWORDS:
+                # Caso A: Rótulo e valor na mesma linha -> "Nome: João Silva"
+                match_same_line = re.search(kw + r'\s*([A-Za-zÀ-ÖØ-öø-ÿ\s]{3,60})', line, re.IGNORECASE)
+                if match_same_line:
+                    val = match_same_line.group(1).strip()
+                    if len(val.split()) >= 1 and not any(k in val.lower() for k in ['cpf', 'data', 'endereço', 'rua', 'ficha', 'sistema']):
+                        return val.title()
 
-        # Fallback: Se nenhuma tag de nome foi encontrada, tenta a primeira linha não vazia que contenha apenas letras
+                # Caso B: Linha contém apenas o rótulo (ex: "Nome do Cliente:") e o valor está na próxima linha
+                match_label_only = re.search(r'^\s*' + kw + r'\s*$', line, re.IGNORECASE)
+                if match_label_only and i + 1 < len(lines):
+                    next_line = lines[i + 1].strip()
+                    clean_next = re.sub(r'[^A-Za-zÀ-ÖØ-öø-ÿ\s]', '', next_line).strip()
+                    if clean_next and not any(k in next_line.lower() for k in ['cpf:', 'data:', 'endereço:', 'rua:', 'ficha', 'sistema', 'hyperautomation']):
+                        return next_line.title()
+
+        # Fallback: Procura nas primeiras linhas que pareçam um nome completo (descartando títulos/cabeçalhos)
+        HEADER_KEYWORDS = ['sistema', 'hyperautomation', 'ficha', 'documento', 'relatorio', 'cadastro', 'cpf', 'atendimento', 'processo']
         for line in lines[:5]:
             clean_line = re.sub(r'[^A-Za-zÀ-ÖØ-öø-ÿ\s]', '', line).strip()
             words = clean_line.split()
-            if 2 <= len(words) <= 5 and not any(k in clean_line.lower() for k in ['documento', 'relatorio', 'cadastro', 'cpf']):
+            if 2 <= len(words) <= 5 and not any(k in clean_line.lower() for k in HEADER_KEYWORDS):
                 return clean_line.title()
 
         return "NÃO ENCONTRADO"
 
     @classmethod
     def extract_address(cls, text: str) -> str:
-        """Extrai o Endereço do texto."""
+        """Extrai o Endereço do texto (suporta rótulo na mesma linha ou na linha seguinte)."""
         lines = [line.strip() for line in text.splitlines() if line.strip()]
 
-        # Busca por rótulos de endereço
         for i, line in enumerate(lines):
             for kw in cls.ADDRESS_KEYWORDS:
                 match = re.search(kw + r'\s*(.+)', line, re.IGNORECASE)
                 if match:
                     addr = match.group(1).strip()
-                    # Se o endereço continuar na próxima linha
-                    if len(addr) < 15 and i + 1 < len(lines):
-                        addr += " " + lines[i+1]
-                    return addr
+                    if addr and not any(k in addr.lower() for k in ['cpf:', 'data:']):
+                        return addr
+
+                match_label_only = re.search(r'^\s*' + kw + r'\s*$', line, re.IGNORECASE)
+                if match_label_only and i + 1 < len(lines):
+                    next_line = lines[i + 1].strip()
+                    if next_line and not any(k in next_line.lower() for k in ['cpf:', 'data:', 'nome:']):
+                        return next_line
 
         # Fallback por CEP ou nomes de logradouro (Rua, Av, Avenida, Alameda)
         street_pattern = re.compile(r'\b(rua|av\.?|avenida|alameda|praça|travessa)\s+[^\n]+', re.IGNORECASE)
@@ -89,8 +101,8 @@ class DataExtractor:
         if match_street:
             return match_street.group(0).strip()
 
-
         return "NÃO ENCONTRADO"
+
 
     @classmethod
     def extract_all(cls, text: str, source_filename: str = "") -> Dict[str, str]:
