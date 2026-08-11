@@ -1,0 +1,13 @@
+# Dependências Principais - HyperAutomation Processo 1 (Atendimento)
+python-docx>=1.1.0
+python-dotenv>=1.0.0
+pypdf>=4.0.0
+google-api-python-client>=2.0.0
+google-auth-httplib2>=0.2.0
+google-auth-oauthlib>=1.0.0
+pydrive2>=1.20.0
+openpyxl>=3.1.0
+
+# Ferramentas de Testes e Cobertura
+pytest>=8.0.0
+pytest-cov>=5.0.0
