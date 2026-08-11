@@ -31,3 +31,9 @@ temp/
 .coverage
 .pytest_cache/
 htmlcov/
+
+# Google Drive Credentials
+client_secrets.json
+credentials.json
+mycreds.txt
+token.json

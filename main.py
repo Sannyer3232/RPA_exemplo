@@ -4,6 +4,7 @@ from pathlib import Path
 from source.ler_emails.config import Config
 from source.ler_emails.process_emails import EmailProcessor
 from source.acessar_documento.process_documents import DocumentProcessor
+from source.salvar_drive.process_upload import DriveProcessor
 
 def setup_logging():
     """Configura o formato e nível de log da aplicação."""
@@ -23,14 +24,14 @@ def check_env_file():
         print("[AVISO] Arquivo '.env' não foi encontrado!")
         print("Crie o arquivo '.env' na raiz do projeto com base no '.env.example':")
         print("  cp .env.example .env")
-        print("E preencha com as credenciais do seu e-mail (IMAP / SMTP).")
+        print("E preencha com as credenciais do seu e-mail (IMAP / SMTP) e Google Drive.")
         print("="*70 + "\n")
 
 def main():
     setup_logging()
     logger = logging.getLogger("RPA_Main")
     
-    logger.info("=== Executando RPA HyperAutomation ===")
+    logger.info("=== Executando RPA HyperAutomation (Completo: E-mails -> Extração -> Google Drive) ===")
     check_env_file()
 
     # --- ETAPA 1: Leitura de E-mails e Separação de Anexos ---
@@ -49,18 +50,29 @@ def main():
     doc_processor = DocumentProcessor()
     res_docs = doc_processor.process_all_documents()
 
-    # --- SUMMARY ---
+    # --- ETAPA 3: Upload para o Google Drive ---
+    logger.info("--- Etapa 3: Upload da Planilha Mestra e Documentos para o Google Drive ---")
+    drive_processor = DriveProcessor()
+    res_drive = drive_processor.run_upload_pipeline()
+
+    # --- SUMMARY GERAL ---
     logger.info("=== Summary de Execução Geral do RPA ===")
-    logger.info("[E-mails]")
-    logger.info(f" - Processados: {res_emails.get('emails_processados', 0)}")
-    logger.info(f" - Salvos em Documentos_OK: {res_emails.get('anexos_ok', 0)}")
-    logger.info(f" - Salvos em Pendentes: {res_emails.get('anexos_pendentes', 0)}")
-    logger.info(f" - Salvos em Arquivados: {res_emails.get('anexos_arquivados', 0)}")
-    logger.info("[Documentos Extraídos para Excel]")
+    logger.info("[Etapa 1 - E-mails]")
+    logger.info(f" - E-mails processados: {res_emails.get('emails_processados', 0)}")
+    logger.info(f" - Anexos em Documentos_OK: {res_emails.get('anexos_ok', 0)}")
+    logger.info(f" - Anexos em Pendentes: {res_emails.get('anexos_pendentes', 0)}")
+    logger.info(f" - Anexos em Arquivados: {res_emails.get('anexos_arquivados', 0)}")
+
+    logger.info("[Etapa 2 - Extração de Dados & Excel]")
     logger.info(f" - Documentos lidos: {res_docs.get('documentos_encontrados', 0)}")
     logger.info(f" - Registros gravados no Excel: {res_docs.get('documentos_processados', 0)}")
     logger.info(f" - Registros completos (4/4 campos): {res_docs.get('registros_completos', 0)}")
     logger.info(f" - Registros parciais: {res_docs.get('registros_parciais', 0)}")
+
+    logger.info("[Etapa 3 - Google Drive]")
+    logger.info(f" - Autenticado no Drive: {res_drive.get('autenticado', False)}")
+    logger.info(f" - Planilha Mestra enviada: {res_drive.get('planilha_enviada', False)}")
+    logger.info(f" - Documentos enviados: {res_drive.get('documentos_enviados', 0)}")
     logger.info("=== Processo Finalizado com Sucesso ===")
 
 if __name__ == "__main__":
