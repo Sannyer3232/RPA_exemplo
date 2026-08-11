@@ -3,7 +3,7 @@ import re
 import logging
 from pathlib import Path
 from typing import Optional
-from source.config import Config
+from source.ler_emails.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +27,7 @@ class FileManager:
         """Remove caracteres inválidos do nome do arquivo para evitar erros no sistema de arquivos."""
         if not filename:
             return "anexo_sem_nome"
-        # Substitui caracteres especiais por underline
         clean_name = re.sub(r'[\\/*?:"<>|]', '_', filename)
-        # Remove quebras de linha e espaços nas pontas
         clean_name = clean_name.strip().replace('\r', '').replace('\n', '')
         return clean_name or "anexo_sem_nome"
 
@@ -60,7 +58,6 @@ class FileManager:
             clean_filename = self.sanitize_filename(filename)
             file_path = target_dir / clean_filename
 
-            # Evita sobrescrever arquivos com o mesmo nome criando sufixo sequencial
             counter = 1
             stem = file_path.stem
             suffix = file_path.suffix

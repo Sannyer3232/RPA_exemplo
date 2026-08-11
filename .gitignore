@@ -26,3 +26,8 @@ temp/
 .idea/
 *.swp
 *.swo
+
+# Coverage & Pytest
+.coverage
+.pytest_cache/
+htmlcov/

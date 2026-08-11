@@ -2,8 +2,8 @@ import imaplib
 import email
 from email.header import decode_header
 import logging
-from typing import List, Dict, Any, Tuple
-from source.config import Config
+from typing import List, Dict, Any
+from source.ler_emails.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +78,6 @@ class IMAPClient:
 
         self.connection.select(mailbox)
         
-        # Busca pelos IDs das mensagens nao lidas
         status, search_data = self.connection.search(None, "UNSEEN")
         if status != "OK":
             logger.warning(f"Nao foi possivel buscar e-mails nao lidos na pasta {mailbox}.")
@@ -88,7 +87,6 @@ class IMAPClient:
         logger.info(f"Encontrados {len(email_ids)} e-mail(s) nao lido(s) em '{mailbox}'.")
 
         emails = []
-        # Define se usa BODY.PEEK[] para nao marcar como lido ou BODY[] para marcar
         fetch_cmd = "(RFC822)" if mark_as_read else "(BODY.PEEK[])"
 
         for mail_id in email_ids:
@@ -122,7 +120,6 @@ class IMAPClient:
                         content_type = part.get_content_type()
                         content_disposition = str(part.get("Content-Disposition"))
 
-                        # Verifica se e anexo
                         filename = part.get_filename()
                         if filename or "attachment" in content_disposition:
                             if filename:

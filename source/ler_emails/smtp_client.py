@@ -4,8 +4,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-from typing import List, Optional, Tuple, Dict, Any
-from source.config import Config
+from typing import List, Optional, Tuple
+from source.ler_emails.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +54,6 @@ class SMTPClient:
             msg["To"] = to_address
             msg["Subject"] = subject
 
-            # Corpo do e-mail
             if body_html:
                 msg_body = MIMEMultipart("alternative")
                 msg_body.attach(MIMEText(body_text, "plain", "utf-8"))
@@ -63,7 +62,6 @@ class SMTPClient:
             else:
                 msg.attach(MIMEText(body_text, "plain", "utf-8"))
 
-            # Anexos
             if attachments:
                 for filename, file_bytes in attachments:
                     part = MIMEBase("application", "octet-stream")

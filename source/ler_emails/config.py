@@ -3,7 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Carrega variáveis do arquivo .env no diretório raiz do projeto
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 env_path = BASE_DIR / '.env'
 
 if env_path.exists():

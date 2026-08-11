@@ -1,10 +1,10 @@
 import logging
 from pathlib import Path
-from typing import List, Dict, Any
-from source.config import Config
-from source.file_manager import FileManager
-from source.imap_client import IMAPClient
-from source.smtp_client import SMTPClient
+from typing import Dict, Any
+from source.ler_emails.config import Config
+from source.ler_emails.file_manager import FileManager
+from source.ler_emails.imap_client import IMAPClient
+from source.ler_emails.smtp_client import SMTPClient
 
 logger = logging.getLogger(__name__)
 
@@ -21,11 +21,6 @@ class EmailProcessor:
     def classify_attachment(self, email_data: Dict[str, Any], attachment_name: str) -> str:
         """
         Determina a pasta de destino para o anexo: 'OK', 'PENDENTE' ou 'ARQUIVADO'.
-        
-        Regras de Classificacao:
-        1. Se o assunto contiver tags explicitas como [OK], [PENDENTE], [ARQUIVAR].
-        2. Se a extensao for de um documento valido e suportado -> 'OK'.
-        3. Se a extensao nao for reconhecida ou houver pendencia -> 'PENDENTE'.
         """
         subject_upper = email_data.get("subject", "").upper()
         ext = Path(attachment_name).suffix.lower()
@@ -46,9 +41,6 @@ class EmailProcessor:
     def process_unread_emails(self, mark_as_read: bool = True) -> Dict[str, int]:
         """
         Executa a leitura dos e-mails nao lidos e salva os anexos nas pastas apropriadas.
-
-        :param mark_as_read: Se True, marca os e-mails processados como lidos no servidor.
-        :return: Estatísticas do processamento (e-mails processados, anexos salvos por categoria).
         """
         stats = {
             "emails_processados": 0,
@@ -84,7 +76,6 @@ class EmailProcessor:
                         logger.warning(f"O e-mail '{subject}' nao possui anexos. Registrando como Pendente.")
                         stats["emails_sem_anexo"] += 1
                         
-                        # Opcional: Salvar resumo do email sem anexo na pasta Pendentes para posterior analise
                         body_filename = f"email_sem_anexo_{email_info['id']}.txt"
                         email_summary = (
                             f"REMETENTE: {sender}\n"
@@ -117,7 +108,6 @@ class EmailProcessor:
                                 elif category == "ARQUIVADO":
                                     stats["anexos_arquivados"] += 1
 
-                                # Também salva uma cópia de backup/histórico na pasta Arquivados
                                 if category != "ARQUIVADO":
                                     self.file_manager.save_attachment(
                                         att_content,
@@ -125,7 +115,6 @@ class EmailProcessor:
                                         category="ARQUIVADO"
                                     )
 
-                    # Envio opcional de e-mail de confirmacao de recebimento via SMTP
                     if self.send_confirmation and sender and "@" in sender:
                         confirm_body = (
                             f"Olá,\n\n"
