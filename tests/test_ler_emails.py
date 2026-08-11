@@ -1,3 +1,11 @@
+import sys
+from pathlib import Path
+
+# Adiciona o diretório raiz do projeto ao sys.path para permitir a importação de 'source'
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 import pytest
 import email
 from email.mime.multipart import MIMEMultipart
@@ -5,7 +13,6 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from unittest.mock import MagicMock, patch, mock_open
-from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from source.ler_emails.config import Config
@@ -13,6 +20,7 @@ from source.ler_emails.file_manager import FileManager
 from source.ler_emails.imap_client import IMAPClient
 from source.ler_emails.smtp_client import SMTPClient
 from source.ler_emails.process_emails import EmailProcessor
+
 
 
 # ==========================================
@@ -347,3 +355,8 @@ def test_email_processor_process_unread_emails_flow(mock_smtp_cls, mock_imap_cls
             assert (temp_path / "Pendentes" / "email_sem_anexo_2.txt").exists()
             assert (temp_path / "Arquivados" / "copia_nf_101.pdf").exists()
             assert mock_smtp_instance.send_email.call_count == 2
+
+
+if __name__ == "__main__":
+    pytest.main(["-v", __file__])
+

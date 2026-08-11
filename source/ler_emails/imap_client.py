@@ -11,11 +11,12 @@ class IMAPClient:
     """Cliente IMAP para conexao com caixa de e-mail e leitura de mensagens nao lidas (UNSEEN)."""
 
     def __init__(self, host: str = None, port: int = None, user: str = None, password: str = None):
-        self.host = host or Config.IMAP_SERVER
-        self.port = port or Config.IMAP_PORT
-        self.user = user or Config.IMAP_USER
-        self.password = password or Config.IMAP_PASSWORD
+        self.host = host if host is not None else Config.IMAP_SERVER
+        self.port = port if port is not None else Config.IMAP_PORT
+        self.user = user if user is not None else Config.IMAP_USER
+        self.password = password if password is not None else Config.IMAP_PASSWORD
         self.connection = None
+
 
     def connect(self) -> None:
         """Conecta e realiza login no servidor IMAP SSL."""

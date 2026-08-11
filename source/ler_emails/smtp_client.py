@@ -20,11 +20,12 @@ class SMTPClient:
         password: str = None,
         use_tls: bool = None
     ):
-        self.host = host or Config.SMTP_SERVER
-        self.port = port or Config.SMTP_PORT
-        self.user = user or Config.SMTP_USER
-        self.password = password or Config.SMTP_PASSWORD
+        self.host = host if host is not None else Config.SMTP_SERVER
+        self.port = port if port is not None else Config.SMTP_PORT
+        self.user = user if user is not None else Config.SMTP_USER
+        self.password = password if password is not None else Config.SMTP_PASSWORD
         self.use_tls = use_tls if use_tls is not None else Config.SMTP_USE_TLS
+
 
     def send_email(
         self,
